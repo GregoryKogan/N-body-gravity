@@ -52,19 +52,25 @@ class Planet{
     }
 
     static collide(pl1, pl2){
+        const tmpDir12 = createVector(pl2.position.x - pl1.position.x, pl2.position.y - pl1.position.y)
+        const offset = tmpDir12.mag() - (pl1.radius + pl2.radius)
+        pl1.position.add(tmpDir12.copy().normalize().mult(offset / 2))
+        pl2.position.add(tmpDir12.copy().normalize().mult(-offset / 2))
         const direction12 = createVector(pl2.position.x - pl1.position.x, pl2.position.y - pl1.position.y)
         const direction21 = createVector(pl1.position.x - pl2.position.x, pl1.position.y - pl2.position.y)
-        const v1 = this.vectorProjection(pl1.velocity, direction12)
-        const v2 = this.vectorProjection(pl2.velocity, direction21)
-        const mSum = pl1.mass + pl2.mass
-        const newV1 = ((pl1.mass - pl2.mass) / mSum) * v1.mag() + ((2 * pl2.mass) / mSum) * v2.mag()
-        const newV2 = ((pl2.mass - pl1.mass) / mSum) * v2.mag() + ((2 * pl1.mass) / mSum) * v1.mag()
-        pl1.velocity.sub(v1)
-        pl2.velocity.sub(v2)
-        direction12.setMag(newV1 * 0.95)
-        direction21.setMag(newV2 * 0.95)
-        pl1.velocity.sub(direction12)
-        pl2.velocity.sub(direction21)
+        const pl1ImpFrac = pl2.mass / (pl1.mass + pl2.mass)
+        const pl2ImpFrac = pl1.mass / (pl1.mass + pl2.mass)
+        const impulse1Dir = this.vectorProjection(pl1.velocity, direction12).mult(pl1.mass)
+        const impulse2Dir = this.vectorProjection(pl2.velocity, direction21).mult(pl2.mass)
+        const totalImpulse = impulse1Dir.copy().add(impulse2Dir.copy().mult(-1))
+        const resImpulse1 = totalImpulse.copy().mult(-pl1ImpFrac).mult(pl1.k * pl2.k)
+        const resImpulse2 = totalImpulse.copy().mult(pl2ImpFrac).mult(pl1.k * pl2.k)
+        const stop1Force = this.vectorProjection(pl1.velocity, direction12).mult(pl1.mass).mult(-1)
+        const stop2Force = this.vectorProjection(pl2.velocity, direction21).mult(pl2.mass).mult(-1)
+        pl1.applyForce(stop1Force)
+        pl2.applyForce(stop2Force)
+        pl1.applyForce(resImpulse1)
+        pl2.applyForce(resImpulse2)
     }
 
     static wallCollide(pl){
