@@ -34,14 +34,7 @@ class Planet{
         const r = pl1.position.dist(pl2.position)
         if (r < pl1.radius + pl2.radius)
             this.collide(pl1, pl2)
-        else {
-            const force = this.g * pl1.mass * pl2.mass / (r * r)
-            let direction = createVector(pl2.position.x - pl1.position.x, pl2.position.y - pl1.position.y)
-            direction.setMag(force)
-            pl1.applyForce(direction)
-            direction.mult(-1)
-            pl2.applyForce(direction)
-        }
+       
     }
 
     static vectorProjection(a, b){
